@@ -14,9 +14,8 @@ namespace FurnitureOnline
             var OrderShippingMethod = ShippingMethod.SelectShippingMethod();
 
             double? summa;
-            Console.WriteLine(ShoppingCart.ShowShoppingCart(out summa));
-            Console.WriteLine($"Frakt ({OrderShippingMethod.Name}) \t{OrderShippingMethod.Price:C}");
-            Console.WriteLine($"Total att betala: {summa + OrderShippingMethod.Price:C}");
+            string orderSummary = ShoppingCart.ShowShoppingCart(out summa) + $"Frakt ({OrderShippingMethod.Name}) \t{OrderShippingMethod.Price:C}\nTotal att betala: {summa + OrderShippingMethod.Price:C}";
+            Console.WriteLine(orderSummary);
 
             var payment = Payment.SelectPaymentMethod();
 
@@ -27,9 +26,30 @@ namespace FurnitureOnline
                 var orderList = dbOrderHistory.OrderHistories;
                 orderList.Add(newOrderHistory);
                 dbOrderHistory.SaveChanges();
-            }
-           } 
 
+                var cartlist = from
+                                  cart in dbOrderHistory.ShoppingCarts
+                               join
+                               product in dbOrderHistory.Products on cart.ProductsId equals product.ArticleNumber
+                               select new Models.ShowShoppingCartQuery { ArticleNumber = cart.ProductsId, ProductName = product.Name, Quantity = cart.AmountOfItems, UnitPrice = product.CurrentPrice };
+
+                foreach (var item in cartlist)
+                {
+                    using (var dbOrderDetail = new Models.FurnitureOnlineContext())
+                    {
+                        var OrderDetailList = dbOrderDetail.OrderDetails;
+                        var newOrderDetail = new Models.OrderDetail() { OrderId = newOrderHistory.Id, ProductId = 1, Price = item.UnitPrice, Quantity = item.Quantity };
+                       
+                        OrderDetailList.Add(newOrderDetail);
+                        dbOrderDetail.SaveChanges();
+                    }
+                }
+
+                Console.WriteLine("Orderbekräftelse:\n" + orderSummary);
+            }
+          } 
+
+          
 
     }
 }

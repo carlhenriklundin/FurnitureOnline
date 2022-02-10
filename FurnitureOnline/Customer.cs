@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FurnitureOnline
 {
@@ -112,26 +108,42 @@ namespace FurnitureOnline
 
         public static Models.Customer MemberLogin()
         {
-            Console.WriteLine("Ange ditt användarnamn, personnummer(ÅÅÅÅMMDD-NNNN) eller email: ");
-            string input = Console.ReadLine();
-            string password = Console.ReadLine();
-
-            var customer = new Models.Customer();
-
-            using (var db = new Models.FurnitureOnlineContext())
+            bool correct = false;
+ 
+            while (!correct)
             {
-                var customerList = db.Customers;
 
-                foreach (var customers in customerList)
+
+                Console.WriteLine("Ange ditt användarnamn, personnummer(ÅÅÅÅMMDD-NNNN) eller email: ");
+                string input = Console.ReadLine();
+                Console.WriteLine("Ange ditt lösenord:");
+                string password = Console.ReadLine();
+
+
+
+                using (var db = new Models.FurnitureOnlineContext())
                 {
-                    if ((customers.UserName == input || customers.IdNumber == input || customers.Email == input) && customers.Password == password)
+                    var customerList = db.Customers;
+
+
+
                     {
-                        return customers;
+                        foreach (var customers in customerList)
+                        {
+                            if ((customers.UserName == input || customers.IdNumber == input || customers.Email == input) && customers.Password == password)
+                            {
+                                correct = true;
+                                return customers;
+                            }
+                        }
+
+                        Console.WriteLine("Felaktig inmatning, ange enligt exemplet");
                     }
+
                 }
-                Console.WriteLine("Felaktig inmatning, ange enligt exemplet");
-                return customer;
             }
+
+            return null;
         }
     }
 }
